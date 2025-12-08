@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package role;
+
+import "google/protobuf/timestamp.proto";
+
+// gRPC Role Service
+service Role {
+    rpc RoleCreate (RoleCreateRequest) returns (RoleCreateResponse);
+    rpc RoleList (RoleListRequest) returns (RoleListResponse);
+    rpc RoleDetail (RoleDetailRequest) returns (RoleDetailResponse);
+    rpc RoleUpdate (RoleUpdateRequest) returns (RoleUpdateResponse);
+    rpc RoleDelete (RoleDeleteRequest) returns (RoleDeleteResponse);
+    rpc AssignRolesToUser (AssignRolesToUserRequest) returns (AssignRolesToUserResponse);
+    rpc RevokeRolesFromUser (RevokeRolesFromUserRequest) returns (RevokeRolesFromUserResponse);
+    rpc GetUserRoles (GetUserRolesRequest) returns (GetUserRolesResponse);
+    rpc GetRoleUsers (GetRoleUsersRequest) returns (GetRoleUsersResponse);
+}
+
+// Common Role Data Model
+message RoleData {
+    int64 id = 1;
+    string name = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp updated_at = 4;
+}
+
+// User-Role Relationship
+message UserRoleData {
+    int64 user_id = 1;
+    string username = 2;
+    int64 role_id = 3;
+    string role_name = 4;
+    google.protobuf.Timestamp assigned_at = 5;
+}
+
+// ----- Create Role -----
+message RoleCreateRequest {
+    string name = 1; // required, max 100 chars
+}
+
+message RoleCreateResponse {
+    bool success = 1;
+    optional RoleData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "ROLE_ALREADY_EXISTS", "INVALID_NAME"
+}
+
+// ----- List Roles -----
+message RoleListRequest {
+    int64 page = 1; // default: 1
+    int64 limit = 2; // default: 10, max: 100
+    string search = 3; // optional search filter
+}
+
+message RoleListResponse {
+    bool success = 1;
+    int64 total = 2;
+    int64 page = 3;
+    int64 limit = 4;
+    repeated RoleData data = 5;
+    string message = 6;
+}
+
+// ----- Role Detail -----
+message RoleDetailRequest {
+    int64 id = 1; // required
+}
+
+message RoleDetailResponse {
+    bool success = 1;
+    optional RoleData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "ROLE_NOT_FOUND"
+}
+
+// ----- Update Role -----
+message RoleUpdateRequest {
+    int64 id = 1; // required
+    string name = 2; // required, max 100 chars
+}
+
+message RoleUpdateResponse {
+    bool success = 1;
+    optional RoleData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "ROLE_NOT_FOUND", "ROLE_ALREADY_EXISTS"
+}
+
+// ----- Delete Role -----
+message RoleDeleteRequest {
+    int64 id = 1; // required
+}
+
+message RoleDeleteResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "ROLE_NOT_FOUND", "ROLE_IN_USE"
+}
+
+// ----- Assign Roles to User -----
+message AssignRolesToUserRequest {
+    int64 user_id = 1; // required
+    repeated int64 role_ids = 2; // required, list of role IDs to assign
+}
+
+message AssignRolesToUserResponse {
+    bool success = 1;
+    repeated UserRoleData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "USER_NOT_FOUND", "ROLE_NOT_FOUND", "ALREADY_ASSIGNED"
+}
+
+// ----- Revoke Roles from User -----
+message RevokeRolesFromUserRequest {
+    int64 user_id = 1; // required
+    repeated int64 role_ids = 2; // required, list of role IDs to revoke
+}
+
+message RevokeRolesFromUserResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "USER_NOT_FOUND", "ROLE_NOT_FOUND", "NOT_ASSIGNED"
+}
+
+// ----- Get User Roles -----
+message GetUserRolesRequest {
+    int64 user_id = 1; // required
+}
+
+message GetUserRolesResponse {
+    bool success = 1;
+    int64 user_id = 2;
+    string username = 3;
+    repeated RoleData roles = 4;
+    string message = 5;
+    string error_code = 6; // e.g., "USER_NOT_FOUND"
+}
+
+// ----- Get Role Users -----
+message GetRoleUsersRequest {
+    int64 role_id = 1; // required
+    int64 page = 2; // default: 1
+    int64 limit = 3; // default: 10, max: 100
+}
+
+message GetRoleUsersResponse {
+    bool success = 1;
+    int64 role_id = 2;
+    string role_name = 3;
+    int64 total = 4;
+    int64 page = 5;
+    int64 limit = 6;
+    repeated UserRoleData users = 7;
+    string message = 8;
+    string error_code = 9; // e.g., "ROLE_NOT_FOUND"
+}

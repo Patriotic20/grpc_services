@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package permission;
+
+import "google/protobuf/timestamp.proto";
+
+// gRPC Permission Service
+service PermissionService {
+    rpc PermissionCreate (PermissionCreateRequest) returns (PermissionCreateResponse);
+    rpc PermissionList (PermissionListRequest) returns (PermissionListResponse);
+    rpc PermissionDetail (PermissionDetailRequest) returns (PermissionDetailResponse);
+    rpc PermissionUpdate (PermissionUpdateRequest) returns (PermissionUpdateResponse);
+    rpc PermissionDelete (PermissionDeleteRequest) returns (PermissionDeleteResponse);
+    rpc AssignPermissionToRole (AssignPermissionToRoleRequest) returns (AssignPermissionToRoleResponse);
+    rpc RevokePermissionFromRole (RevokePermissionFromRoleRequest) returns (RevokePermissionFromRoleResponse);
+    rpc GetRolePermissions (GetRolePermissionsRequest) returns (GetRolePermissionsResponse);
+}
+
+// Common Permission Data Model
+message PermissionData {
+    int64 id = 1;
+    string name = 2; // e.g., "users.create", "posts.delete"
+    string resource = 3; // e.g., "users", "posts", "comments"
+    string action = 4; // e.g., "create", "read", "update", "delete"
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+// Role-Permission Relationship
+message RolePermissionData {
+    int64 role_id = 1;
+    string role_name = 2;
+    int64 permission_id = 3;
+    string permission_name = 4;
+    google.protobuf.Timestamp assigned_at = 5;
+}
+
+// ----- Create Permission -----
+message PermissionCreateRequest {
+    string name = 1; // required, unique, max 100 chars
+    string resource = 2; // required, max 50 chars
+    string action = 3; // required, max 50 chars
+    string description = 4; // optional, max 255 chars
+}
+
+message PermissionCreateResponse {
+    bool success = 1;
+    optional PermissionData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "PERMISSION_ALREADY_EXISTS", "INVALID_NAME"
+}
+
+// ----- List Permissions -----
+message PermissionListRequest {
+    int64 page = 1; // default: 1
+    int64 limit = 2; // default: 10, max: 100
+    string search = 3; // optional search filter
+    string resource = 4; // optional filter by resource
+    string action = 5; // optional filter by action
+}
+
+message PermissionListResponse {
+    bool success = 1;
+    int64 total = 2;
+    int64 page = 3;
+    int64 limit = 4;
+    repeated PermissionData data = 5;
+    string message = 6;
+}
+
+// ----- Permission Detail -----
+message PermissionDetailRequest {
+    int64 id = 1; // required
+}
+
+message PermissionDetailResponse {
+    bool success = 1;
+    optional PermissionData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "PERMISSION_NOT_FOUND"
+}
+
+// ----- Update Permission -----
+message PermissionUpdateRequest {
+    int64 id = 1; // required
+    string name = 2; // optional, unique, max 100 chars
+    string resource = 3; // optional, max 50 chars
+    string action = 4; // optional, max 50 chars
+}
+
+message PermissionUpdateResponse {
+    bool success = 1;
+    optional PermissionData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "PERMISSION_NOT_FOUND", "PERMISSION_ALREADY_EXISTS"
+}
+
+// ----- Delete Permission -----
+message PermissionDeleteRequest {
+    int64 id = 1; // required
+}
+
+message PermissionDeleteResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "PERMISSION_NOT_FOUND", "PERMISSION_IN_USE"
+}
+
+// ----- Assign Permission to Role -----
+message AssignPermissionToRoleRequest {
+    int64 role_id = 1; // required
+    repeated int64 permission_ids = 2; // required, list of permission IDs
+}
+
+message AssignPermissionToRoleResponse {
+    bool success = 1;
+    repeated RolePermissionData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "ROLE_NOT_FOUND", "PERMISSION_NOT_FOUND", "ALREADY_ASSIGNED"
+}
+
+// ----- Revoke Permission from Role -----
+message RevokePermissionFromRoleRequest {
+    int64 role_id = 1; // required
+    repeated int64 permission_ids = 2; // required, list of permission IDs
+}
+
+message RevokePermissionFromRoleResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "ROLE_NOT_FOUND", "PERMISSION_NOT_FOUND", "NOT_ASSIGNED"
+}
+
+// ----- Get Role Permissions -----
+message GetRolePermissionsRequest {
+    int64 role_id = 1; // required
+}
+
+message GetRolePermissionsResponse {
+    bool success = 1;
+    int64 role_id = 2;
+    string role_name = 3;
+    repeated PermissionData permissions = 4;
+    string message = 5;
+    string error_code = 6; // e.g., "ROLE_NOT_FOUND"
+}

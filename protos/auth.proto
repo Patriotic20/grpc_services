@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+
+// gRPC Auth Service
+service AuthService {
+    rpc Register (RegisterRequest) returns (RegisterResponse);
+    rpc Login (LoginRequest) returns (LoginResponse);
+    rpc Refresh (RefreshRequest) returns (RefreshResponse);
+    rpc Logout (LogoutRequest) returns (LogoutResponse);
+    rpc VerifyToken (VerifyTokenRequest) returns (VerifyTokenResponse);
+    rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+}
+
+// Common User Data Model
+message UserData {
+    int64 id = 1;
+    string username = 2;
+    repeated string roles = 4; // e.g., ["admin", "user"]
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+// Token Data Model
+message TokenData {
+    string type = 1; // token type, example: "Bearer"
+    string access_token = 2;
+    string refresh_token = 3;
+    int64 expires_in = 4; // access token expiration in seconds
+    int64 refresh_expires_in = 5; // refresh token expiration in seconds
+}
+
+// ----- Register -----
+message RegisterRequest {
+    string username = 1; // required, 3-50 chars
+    string email = 2; // required, valid email format
+    string password = 3; // required, min 8 chars
+    string password_confirm = 4; // required, must match password
+}
+
+message RegisterResponse {
+    bool success = 1;
+    optional UserData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "USERNAME_EXISTS", "EMAIL_EXISTS", "WEAK_PASSWORD"
+}
+
+// ----- Login -----
+message LoginRequest {
+    string username = 1; // can be username or email
+    string password = 2; // required
+}
+
+message LoginResponse {
+    bool success = 1;
+    optional TokenData tokens = 2;
+    optional UserData user = 3;
+    string message = 4;
+    string error_code = 5; // e.g., "INVALID_CREDENTIALS", "ACCOUNT_LOCKED", "ACCOUNT_NOT_VERIFIED"
+}
+
+// ----- Refresh Token -----
+message RefreshRequest {
+    string refresh_token = 1; // required
+}
+
+message RefreshResponse {
+    bool success = 1;
+    optional TokenData tokens = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "INVALID_TOKEN", "TOKEN_EXPIRED", "TOKEN_REVOKED"
+}
+
+// ----- Logout -----
+message LogoutRequest {
+    string access_token = 1; // optional, can extract from metadata
+    string refresh_token = 2; // optional
+}
+
+message LogoutResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// ----- Verify Token -----
+message VerifyTokenRequest {
+    string token = 1; // required
+}
+
+message VerifyTokenResponse {
+    bool success = 1;
+    bool valid = 2;
+    optional UserData user = 3;
+    google.protobuf.Timestamp expires_at = 4;
+    string message = 5;
+    string error_code = 6; // e.g., "TOKEN_EXPIRED", "INVALID_TOKEN"
+}
+
+// ----- Change Password -----
+message ChangePasswordRequest {
+    string old_password = 1; // required
+    string new_password = 2; // required, min 8 chars
+    string new_password_confirm = 3; // required, must match new_password
+}
+
+message ChangePasswordResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "INCORRECT_PASSWORD", "WEAK_PASSWORD", "SAME_AS_OLD"
+}
