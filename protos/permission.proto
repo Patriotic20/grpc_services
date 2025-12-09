@@ -5,7 +5,7 @@ package permission;
 import "google/protobuf/timestamp.proto";
 
 // gRPC Permission Service
-service PermissionService {
+service Permission {
     rpc PermissionCreate (PermissionCreateRequest) returns (PermissionCreateResponse);
     rpc PermissionList (PermissionListRequest) returns (PermissionListResponse);
     rpc PermissionDetail (PermissionDetailRequest) returns (PermissionDetailResponse);

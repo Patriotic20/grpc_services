@@ -5,7 +5,7 @@ package auth;
 import "google/protobuf/timestamp.proto";
 
 // gRPC Auth Service
-service AuthService {
+service Auth {
     rpc Register (RegisterRequest) returns (RegisterResponse);
     rpc Login (LoginRequest) returns (LoginResponse);
     rpc Refresh (RefreshRequest) returns (RefreshResponse);
@@ -35,9 +35,7 @@ message TokenData {
 // ----- Register -----
 message RegisterRequest {
     string username = 1; // required, 3-50 chars
-    string email = 2; // required, valid email format
     string password = 3; // required, min 8 chars
-    string password_confirm = 4; // required, must match password
 }
 
 message RegisterResponse {

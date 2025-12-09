@@ -2,7 +2,84 @@ syntax = "proto3";
 
 package user;
 
+import "google/protobuf/timestamp.proto";
 
+// gRPC User Service
 service User {
-    
+    rpc UserList (UserListRequest) returns (UserListResponse);
+    rpc UserDetail (UserDetailRequest) returns (UserDetailResponse);
+    rpc UserUpdate (UserUpdateRequest) returns (UserUpdateResponse);
+    rpc UserDelete (UserDeleteRequest) returns (UserDeleteResponse);
+}
+
+// Common User Data Model (matching actual database)
+message UserData {
+    int64 id = 1;
+    string username = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp updated_at = 4;
+}
+
+// User Data with Roles (for detailed view)
+message UserWithRoles {
+    int64 id = 1;
+    string username = 2;
+    repeated string roles = 3; // roles from role assignments
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp updated_at = 5;
+}
+
+// ----- List Users -----
+message UserListRequest {
+    int64 page = 1; // default: 1
+    int64 limit = 2; // default: 10, max: 100
+    string search = 3; // optional search by username
+    repeated int64 role_ids = 4; // optional filter by roles
+    string sort_by = 5; // e.g., "created_at", "username", "updated_at"
+    string sort_order = 6; // "asc" or "desc"
+}
+
+message UserListResponse {
+    bool success = 1;
+    int64 total = 2;
+    int64 page = 3;
+    int64 limit = 4;
+    repeated UserWithRoles data = 5;
+    string message = 6;
+}
+
+// ----- User Detail -----
+message UserDetailRequest {
+    int64 id = 1; // required
+}
+
+message UserDetailResponse {
+    bool success = 1;
+    optional UserWithRoles data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "USER_NOT_FOUND"
+}
+
+// ----- Update User -----
+message UserUpdateRequest {
+    int64 id = 1; // required
+    string username = 2; // required, unique, 3-50 chars
+}
+
+message UserUpdateResponse {
+    bool success = 1;
+    optional UserData data = 2;
+    string message = 3;
+    string error_code = 4; // e.g., "USER_NOT_FOUND", "USERNAME_EXISTS"
+}
+
+// ----- Delete User -----
+message UserDeleteRequest {
+    int64 id = 1; // required
+}
+
+message UserDeleteResponse {
+    bool success = 1;
+    string message = 2;
+    string error_code = 3; // e.g., "USER_NOT_FOUND", "CANNOT_DELETE_SELF"
 }
